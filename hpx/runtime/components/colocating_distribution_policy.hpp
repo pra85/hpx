@@ -10,6 +10,7 @@
 
 #include <hpx/config.hpp>
 #include <hpx/traits/is_distribution_policy.hpp>
+#include <hpx/traits/extract_action.hpp>
 #include <hpx/runtime/applier/detail/apply_colocated_fwd.hpp>
 #include <hpx/runtime/applier/detail/apply_colocated_callback_fwd.hpp>
 #include <hpx/runtime/components/stubs/stub_base.hpp>
@@ -145,7 +146,7 @@ namespace hpx { namespace components
         template <typename Action, typename ...Ts>
         hpx::future<
             typename traits::promise_local_result<
-                typename hpx::actions::extract_action<Action>::remote_result_type
+                typename traits::extract_action<Action>::remote_result_type
             >::type>
         async(BOOST_SCOPED_ENUM(launch) policy, Ts&&... vs) const
         {
@@ -164,7 +165,7 @@ namespace hpx { namespace components
         template <typename Action, typename Callback, typename ...Ts>
         hpx::future<
             typename traits::promise_local_result<
-                typename hpx::actions::extract_action<Action>::remote_result_type
+                typename traits::extract_action<Action>::remote_result_type
             >::type>
         async_cb(BOOST_SCOPED_ENUM(launch) policy, Callback&& cb, Ts&&... vs) const
         {

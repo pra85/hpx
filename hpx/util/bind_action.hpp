@@ -14,6 +14,7 @@
 #include <hpx/traits/is_bind_expression.hpp>
 #include <hpx/traits/is_placeholder.hpp>
 #include <hpx/traits/serialize_as_future.hpp>
+#include <hpx/traits/extract_action.hpp>
 #include <hpx/util/bind.hpp>
 #include <hpx/util/decay.hpp>
 #include <hpx/util/move.hpp>
@@ -137,7 +138,7 @@ namespace hpx { namespace util
         struct bind_action_async_impl
         {
             typedef lcos::future<typename traits::promise_local_result<
-                typename hpx::actions::extract_action<Action>::remote_result_type
+                typename traits::extract_action<Action>::remote_result_type
             >::type> type;
 
             template <std::size_t ...Is>
@@ -156,7 +157,7 @@ namespace hpx { namespace util
         template <typename Action, typename BoundArgs, typename UnboundArgs>
         BOOST_FORCEINLINE
         lcos::future<typename traits::promise_local_result<
-            typename hpx::actions::extract_action<Action>::remote_result_type
+            typename traits::extract_action<Action>::remote_result_type
         >::type>
         bind_action_async(BoundArgs& bound_args, UnboundArgs&& unbound_args)
         {
@@ -171,7 +172,7 @@ namespace hpx { namespace util
         template <typename Action, typename BoundArgs, typename UnboundArgs>
         BOOST_FORCEINLINE
         typename traits::promise_local_result<
-            typename hpx::actions::extract_action<Action>::remote_result_type
+            typename traits::extract_action<Action>::remote_result_type
         >::type
         bind_action_invoke(
             BoundArgs& bound_args
@@ -191,7 +192,7 @@ namespace hpx { namespace util
         {
         public:
             typedef typename traits::promise_local_result<
-                typename hpx::actions::extract_action<Action>::remote_result_type
+                typename traits::extract_action<Action>::remote_result_type
             >::type result_type;
 
         public:

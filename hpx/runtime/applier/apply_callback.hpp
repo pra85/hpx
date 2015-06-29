@@ -7,6 +7,7 @@
 #define HPX_APPLIER_APPLY_CALLBACK_DEC_16_2012_1228PM
 
 #include <hpx/hpx_fwd.hpp>
+#include <hpx/traits/extract_action.hpp>
 #include <hpx/exception.hpp>
 
 #include <hpx/runtime/applier/apply.hpp>
@@ -246,7 +247,7 @@ namespace hpx
             Callback && cb, Ts&&... vs)
         {
             typedef
-                typename hpx::actions::extract_action<Action>::result_type
+                typename traits::extract_action<Action>::result_type
                 result_type;
 
             return apply_r_p_cb<Action>(std::move(addr),
@@ -263,7 +264,7 @@ namespace hpx
             naming::id_type const& gid, Callback && cb, Ts&&... vs)
         {
             typedef
-                typename hpx::actions::extract_action<Action>::result_type
+                typename traits::extract_action<Action>::result_type
                 result_type;
 
             return apply_r_p_cb<Action>(std::move(addr),
@@ -283,7 +284,7 @@ namespace hpx
         threads::thread_priority priority, Callback && cb, Ts&&... vs)
     {
         typedef
-            typename hpx::actions::extract_action<Action>::result_type
+            typename traits::extract_action<Action>::result_type
             result_type;
 
         return apply_p_cb<Action>(
@@ -300,7 +301,7 @@ namespace hpx
         Callback && cb, Ts&&... vs)
     {
         typedef
-            typename hpx::actions::extract_action<Action>::result_type
+            typename traits::extract_action<Action>::result_type
             result_type;
 
         return apply_p_cb<Action>(
@@ -318,7 +319,7 @@ namespace hpx
         Callback && cb, Ts&&... vs)
     {
         typedef
-            typename hpx::actions::extract_action<Action>::result_type
+            typename traits::extract_action<Action>::result_type
             result_type;
 
         return apply_p_cb<Action>(
@@ -335,7 +336,7 @@ namespace hpx
         naming::id_type const& gid, Callback && cb, Ts&&... vs)
     {
         typedef
-            typename hpx::actions::extract_action<Action>::result_type
+            typename traits::extract_action<Action>::result_type
             result_type;
 
         return apply_p_cb<Action>(

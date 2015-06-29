@@ -7,6 +7,9 @@
 #if !defined(HPX_TRAITS_IS_DISTRIBUTION_POLICY_APR_07_2015_0412PM)
 #define HPX_TRAITS_IS_DISTRIBUTION_POLICY_APR_07_2015_0412PM
 
+#include <hpx/config.hpp>
+#include <hpx/traits.hpp>
+
 #include <type_traits>
 
 namespace hpx { namespace traits

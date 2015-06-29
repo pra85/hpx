@@ -20,6 +20,7 @@
 #include <hpx/util/protect.hpp>
 #include <hpx/util/bind.hpp>
 #include <hpx/traits/component_type_is_compatible.hpp>
+#include <hpx/traits/extract_action.hpp>
 
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/identity.hpp>
@@ -63,10 +64,10 @@ namespace hpx { namespace lcos
     template <typename Action, typename Result>
     class packaged_action<Action, Result, boost::mpl::false_>
       : public promise<Result,
-            typename hpx::actions::extract_action<Action>::remote_result_type>
+            typename traits::extract_action<Action>::remote_result_type>
     {
     private:
-        typedef typename hpx::actions::extract_action<Action>::type action_type;
+        typedef typename traits::extract_action<Action>::type action_type;
         typedef promise<Result, typename action_type::remote_result_type> base_type;
 
         struct profiler_tag {};
@@ -284,10 +285,10 @@ namespace hpx { namespace lcos
     template <typename Action, typename Result>
     class packaged_action<Action, Result, boost::mpl::true_>
       : public promise<Result,
-          typename hpx::actions::extract_action<Action>::remote_result_type>
+          typename traits::extract_action<Action>::remote_result_type>
     {
     private:
-        typedef typename hpx::actions::extract_action<Action>::type action_type;
+        typedef typename traits::extract_action<Action>::type action_type;
         typedef promise<Result, typename action_type::remote_result_type> base_type;
 
         struct profiler_tag {};

@@ -6,8 +6,10 @@
 #if !defined(HPX_LCOS_ASYNC_COLOCATED_FWD_FEB_01_2014_0107PM)
 #define HPX_LCOS_ASYNC_COLOCATED_FWD_FEB_01_2014_0107PM
 
-#include <hpx/hpx_fwd.hpp>
-#include <hpx/traits.hpp>
+#include <hpx/config.hpp>
+#include <hpx/traits/promise_local_result.hpp>
+#include <hpx/traits/extract_action.hpp>
+#include <hpx/runtime/naming/id_type.hpp>
 #include <hpx/util/move.hpp>
 
 namespace hpx { namespace detail
@@ -16,41 +18,41 @@ namespace hpx { namespace detail
     template <typename Action, typename ...Ts>
     lcos::future<
         typename traits::promise_local_result<
-            typename hpx::actions::extract_action<Action>::remote_result_type
+            typename traits::extract_action<Action>::remote_result_type
         >::type>
-    async_colocated(naming::id_type const& gid, Ts&&... vs);
+    async_colocated(naming::id_type const& id, Ts&&... vs);
 
     template <
         typename Component, typename Signature, typename Derived,
         typename ...Ts>
     lcos::future<
         typename traits::promise_local_result<
-            typename hpx::actions::extract_action<Derived>::remote_result_type
+            typename traits::extract_action<Derived>::remote_result_type
         >::type>
     async_colocated(
         hpx::actions::basic_action<Component, Signature, Derived> /*act*/
-      , naming::id_type const& gid, Ts&&... vs);
+      , naming::id_type const& id, Ts&&... vs);
 
     ///////////////////////////////////////////////////////////////////////////
     template <typename Action, typename ...Ts>
     lcos::future<
         typename traits::promise_local_result<
-            typename hpx::actions::extract_action<Action>::remote_result_type
+            typename traits::extract_action<Action>::remote_result_type
         >::type>
     async_colocated(hpx::actions::continuation_type const& cont,
-        naming::id_type const& gid, Ts&&... vs);
+        naming::id_type const& id, Ts&&... vs);
 
     template <
         typename Component, typename Signature, typename Derived,
         typename ...Ts>
     lcos::future<
         typename traits::promise_local_result<
-            typename hpx::actions::extract_action<Derived>::remote_result_type
+            typename traits::extract_action<Derived>::remote_result_type
         >::type>
     async_colocated(
         hpx::actions::continuation_type const& cont
       , hpx::actions::basic_action<Component, Signature, Derived> /*act*/
-      , naming::id_type const& gid, Ts&&... vs);
+      , naming::id_type const& id, Ts&&... vs);
 }}
 
 #if defined(HPX_HAVE_COLOCATED_BACKWARDS_COMPATIBILITY)

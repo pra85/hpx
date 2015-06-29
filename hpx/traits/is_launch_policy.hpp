@@ -6,12 +6,19 @@
 #if !defined(HPX_TRAITS_IS_LAUNCH_POLICY_APR_8_2014_0436PM)
 #define HPX_TRAITS_IS_LAUNCH_POLICY_APR_8_2014_0436PM
 
-#include <hpx/hpx_fwd.hpp>
-#include <hpx/runtime/threads/thread_executor.hpp>
+#include <hpx/config.hpp>
+#include <hpx/traits.hpp>
+#include <hpx/runtime/launch_policy.hpp>
 
+#include <boost/detail/scoped_enum_emulation.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/mpl/or.hpp>
+
+namespace hpx { namespace threads
+{
+    class executor;
+}}
 
 namespace hpx { namespace traits
 {

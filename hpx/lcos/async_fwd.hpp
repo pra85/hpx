@@ -9,31 +9,10 @@
 #define HPX_LCOS_ASYNC_FWD_SEP_28_2011_0840AM
 
 #include <hpx/config.hpp>
-#include <hpx/traits.hpp>
+#include <hpx/traits/extract_action.hpp>
 #include <hpx/util/always_void.hpp>
 #include <hpx/util/move.hpp>
 #include <hpx/util/decay.hpp>
-
-///////////////////////////////////////////////////////////////////////////////
-namespace hpx { namespace actions
-{
-    // This template meta function can be used to extract the action type, no
-    // matter whether it got specified directly or by passing the
-    // corresponding make_action<> specialization.
-    template <typename Action, typename Enable = void>
-    struct extract_action
-    {
-        typedef typename Action::derived_type type;
-        typedef typename type::result_type result_type;
-        typedef typename type::remote_result_type remote_result_type;
-    };
-
-    template <typename Action>
-    struct extract_action<Action
-      , typename util::always_void<typename Action::type>::type>
-      : extract_action<typename Action::type>
-    {};
-}}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace hpx
@@ -45,6 +24,11 @@ namespace hpx
         template <typename Func, typename Enable = void>
         struct async_dispatch;
 
+        // dispatch point used for async implementations where the first
+        // argument is a launch policy
+        template <typename Func, typename Enable = void>
+        struct async_policy_dispatch;
+
         // dispatch point used for async<Action> implementations
         template <typename Action, typename Func, typename Enable = void>
         struct async_action_dispatch;
@@ -53,16 +37,18 @@ namespace hpx
     ///////////////////////////////////////////////////////////////////////////
     template <typename Action, typename F, typename ...Ts>
     BOOST_FORCEINLINE
-    auto async(F&& f, Ts&&... ts)
+    auto async(F && f, Ts &&... ts)
     ->  decltype(detail::async_action_dispatch<
-                    Action, typename util::decay<F>::type
+                Action, typename util::decay<F>::type
             >::call(std::forward<F>(f), std::forward<Ts>(ts)...
         ));
 
     template <typename F, typename ...Ts>
-    BOOST_FORCEINLINE auto async(F&& f, Ts&&... ts)
-    ->  decltype(detail::async_dispatch<typename util::decay<F>::type>::call(
-            std::forward<F>(f), std::forward<Ts>(ts)...
+    BOOST_FORCEINLINE
+    auto async(F && f, Ts &&... ts)
+    ->  decltype(detail::async_dispatch<
+                typename util::decay<F>::type
+            >::call(std::forward<F>(f), std::forward<Ts>(ts)...
         ));
 }
 

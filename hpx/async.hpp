@@ -88,11 +88,10 @@ namespace hpx { namespace detail
 
     ///////////////////////////////////////////////////////////////////////////
     // BOOST_SCOPED_ENUM(launch)
-    template <typename Policy>
-    struct async_dispatch<Policy,
-        typename boost::enable_if_c<
-            traits::is_launch_policy<Policy>::value
-         && !traits::is_action<Policy>::value
+    template <typename Action>
+    struct async_policy_dispatch<Action,
+        typename boost::disable_if_c<
+            traits::is_action<Action>::value
         >::type>
     {
         template <typename F, typename ...Ts>
@@ -101,7 +100,7 @@ namespace hpx { namespace detail
             traits::detail::is_deferred_callable<F(Ts...)>::value,
             hpx::future<typename util::deferred_call_result_of<F(Ts...)>::type>
         >::type
-        call(BOOST_SCOPED_ENUM(launch) const& launch_policy, F&& f, Ts&&... ts)
+        call(BOOST_SCOPED_ENUM(launch) const& launch_policy, F && f, Ts&&... ts)
         {
             typedef typename util::deferred_call_result_of<
                 F(Ts...)
@@ -124,6 +123,31 @@ namespace hpx { namespace detail
                 }
             }
             return p.get_future();
+        }
+    };
+
+    // BOOST_SCOPED_ENUM(launch) requires one more level of dispatch
+    template <typename Policy>
+    struct async_dispatch<Policy,
+        typename boost::enable_if_c<
+            traits::is_launch_policy<Policy>::value
+        >::type>
+    {
+        template <typename F, typename ...Ts>
+        BOOST_FORCEINLINE static
+        auto call(BOOST_SCOPED_ENUM(launch) const& launch_policy, F && f,
+                Ts&&... ts)
+         -> decltype(
+                async_policy_dispatch<
+                    typename util::decay<F>::type
+                >::call(launch_policy, std::forward<F>(f),
+                    std::forward<Ts>(ts)...)
+            )
+        {
+            return async_policy_dispatch<
+                    typename util::decay<F>::type
+                >::call(launch_policy, std::forward<F>(f),
+                    std::forward<Ts>(ts)...);
         }
     };
 
@@ -214,13 +238,14 @@ namespace hpx { namespace detail
 namespace hpx
 {
     template <typename F, typename ...Ts>
-    BOOST_FORCEINLINE auto async(F&& f, Ts&&... ts)
-    ->  decltype(detail::async_dispatch<typename util::decay<F>::type>::call(
-            std::forward<F>(f), std::forward<Ts>(ts)...
-        ))
+    BOOST_FORCEINLINE auto async(F && f, Ts&&... ts)
+    ->  decltype(detail::async_dispatch<
+                typename util::decay<F>::type
+            >::call(std::forward<F>(f), std::forward<Ts>(ts)...))
     {
-        return detail::async_dispatch<typename util::decay<F>::type>::call(
-            std::forward<F>(f), std::forward<Ts>(ts)...);
+        return detail::async_dispatch<
+                typename util::decay<F>::type
+            >::call(std::forward<F>(f), std::forward<Ts>(ts)...);
     }
 }
 

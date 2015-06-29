@@ -34,7 +34,6 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/detail/scoped_enum_emulation.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
@@ -745,35 +744,6 @@ namespace hpx
     namespace performance_counters
     {
         struct counter_info;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Launch policy for \a hpx::async
-    BOOST_SCOPED_ENUM_START(launch)
-    {
-        async = 0x01,
-        deferred = 0x02,
-        task = 0x04,        // see N3632
-        sync = 0x08,
-        fork = 0x10,        // same as async, but forces continuation stealing
-
-        sync_policies = 0x0a,       // sync | deferred
-        async_policies = 0x15,      // async | task | fork
-        all = 0x1f                  // async | deferred | task | sync | fork
-    };
-    BOOST_SCOPED_ENUM_END
-
-    inline bool
-    operator&(BOOST_SCOPED_ENUM(launch) lhs, BOOST_SCOPED_ENUM(launch) rhs)
-    {
-        return (static_cast<int>(lhs) & static_cast<int>(rhs)) != 0;
-    }
-
-    inline BOOST_SCOPED_ENUM(launch)
-    operator|(BOOST_SCOPED_ENUM(launch) lhs, BOOST_SCOPED_ENUM(launch) rhs)
-    {
-        return static_cast<BOOST_SCOPED_ENUM(launch)>(
-            static_cast<int>(lhs) | static_cast<int>(rhs));
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1693,6 +1663,7 @@ namespace hpx
 }
 
 // Including declarations of various API function declarations
+#include <hpx/runtime/launch_policy.hpp>
 #include <hpx/runtime/get_locality_name.hpp>
 #include <hpx/runtime/set_parcel_write_handler.hpp>
 
