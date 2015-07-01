@@ -197,7 +197,7 @@ namespace hpx { namespace components
         }
 
 #if defined(HPX_HAVE_COMPONENT_GET_GID_COMPATIBILITY)
-        naming::id_type get_gid() const
+        HPX_DEPRECATED(HPX_DEPRECATED_MSG) naming::id_type get_gid() const
         {
             return get_id();
         }
