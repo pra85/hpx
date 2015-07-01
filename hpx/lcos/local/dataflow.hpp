@@ -11,7 +11,6 @@
 #include <hpx/apply.hpp>
 #include <hpx/runtime/threads/thread_executor.hpp>
 #include <hpx/lcos/future.hpp>
-#include <hpx/util/assert.hpp>
 #include <hpx/util/bind.hpp>
 #include <hpx/util/decay.hpp>
 #include <hpx/util/invoke_fused.hpp>
@@ -214,60 +213,21 @@ namespace hpx { namespace lcos { namespace local
             }
 
             ///////////////////////////////////////////////////////////////////
-            template <typename Iter>
-            void await_respawn(Iter && iter)
-            {
-                await(0, std::move(iter), boost::mpl::false_());
-
-                // avoid finalizing more than once
-                bool expected = true;
-                if (done_.compare_exchange_strong(expected, false))
-                    finalize(policy_);
-            }
-
-            template <typename Iter>
-            void respawn_await(Iter && iter, boost::mpl::false_)
-            {
-                void (dataflow_frame::*f)(Iter &&)
-                    = &dataflow_frame::await_respawn;
-
-                boost::intrusive_ptr<dataflow_frame> this_(this);
-                threads::register_thread_nullary(
-                    util::deferred_call(f, std::move(this_), std::move(iter))
-                  , "hpx::lcos::local::dataflow::respawn_await"
-                  , threads::pending
-                  , true
-                  , threads::thread_priority_boost);
-            }
-
-            template <typename Iter>
-            void respawn_await(Iter &&, boost::mpl::true_)
-            {
-                // set to true only once
-                bool expected = false;
-                done_.compare_exchange_strong(expected, true);
-                HPX_ASSERT(!expected);
-            }
-
-            ///////////////////////////////////////////////////////////////////
-            template <typename Iter>
+            template <typename Policy_, typename Iter>
             BOOST_FORCEINLINE
-            void await(std::size_t, Iter &&, boost::mpl::true_)
+            void await(Policy_ &&, Iter &&, boost::mpl::true_)
             {
-                // set to true only once
-                bool expected = false;
-                done_.compare_exchange_strong(expected, true);
-                HPX_ASSERT(!expected);
+                 done_ = true;
             }
 
-            // Current element is a not a future or future range, e.g. a just
-            // plain value.
+            // Current element is a not a future or future range, e.g. a just plain
+            // value.
             template <typename Iter, typename IsFuture, typename IsRange>
             BOOST_FORCEINLINE
-            void await_next_respawn(std::size_t depth, Iter iter,
-                IsFuture is_future, IsRange is_range)
+            void await_next_respawn(Iter iter, IsFuture is_future,
+                IsRange is_range)
             {
-                await_next(depth, iter, is_future, is_range);
+                await_next(iter, is_future, is_range);
 
                 // avoid finalizing more than once
                 bool expected = true;
@@ -277,31 +237,25 @@ namespace hpx { namespace lcos { namespace local
 
             template <typename Iter>
             BOOST_FORCEINLINE
-            void await_next(std::size_t depth, Iter iter, boost::mpl::false_,
-                boost::mpl::false_)
+            void await_next(Iter iter, boost::mpl::false_, boost::mpl::false_)
             {
                 typedef
                     typename boost::fusion::result_of::next<Iter>::type
                     next_type;
-                typedef boost::mpl::bool_<
+
+                await(
+                    policy_
+                  , boost::fusion::next(iter)
+                  , boost::mpl::bool_<
                         boost::is_same<next_type, end_type>::value
-                    > is_at_end;
-
-                // re-spawn on a new thread to avoid stack overflows
-                if (depth >= HPX_CONTINUATION_MAX_RECURSION_DEPTH)
-                {
-                    respawn_await(boost::fusion::next(iter), is_at_end());
-                    return;
-                }
-
-                await(++depth, boost::fusion::next(iter), is_at_end());
+                    >()
+                );
             }
 
             template <typename TupleIter, typename Iter>
-            void await_range_respawn(std::size_t depth, TupleIter iter,
-                Iter next, Iter end)
+            void await_range_respawn(TupleIter iter, Iter next, Iter end)
             {
-                await_range(depth, iter, next, end);
+                await_range(iter, next, end);
 
                 // avoid finalizing more than once
                 bool expected = true;
@@ -310,11 +264,10 @@ namespace hpx { namespace lcos { namespace local
             }
 
             template <typename TupleIter, typename Iter>
-            void await_range(std::size_t depth, TupleIter iter,
-                Iter next, Iter end)
+            void await_range(TupleIter iter, Iter next, Iter end)
             {
                 void (dataflow_frame::*f)(
-                        std::size_t, TupleIter, Iter, Iter
+                        TupleIter, Iter, Iter
                     ) = &dataflow_frame::await_range_respawn;
 
                 for (/**/; next != end; ++next)
@@ -344,10 +297,9 @@ namespace hpx { namespace lcos { namespace local
                         {
                             boost::intrusive_ptr<dataflow_frame> this_(this);
                             next_future_data->set_on_completed(
-                                boost::bind(
+                                hpx::util::bind(
                                     f
                                   , std::move(this_)
-                                  , ++depth
                                   , std::move(iter)
                                   , std::move(next)
                                   , std::move(end)
@@ -361,29 +313,23 @@ namespace hpx { namespace lcos { namespace local
                 typedef
                     typename boost::fusion::result_of::next<TupleIter>::type
                     next_type;
-                typedef boost::mpl::bool_<
+
+                await(
+                    policy_
+                  , boost::fusion::next(iter)
+                  , boost::mpl::bool_<
                         boost::is_same<next_type, end_type>::value
-                    > is_at_end;
-
-                // re-spawn on a new thread to avoid stack overflows
-                if (depth >= HPX_CONTINUATION_MAX_RECURSION_DEPTH)
-                {
-                    respawn_await(boost::fusion::next(iter), is_at_end());
-                    return;
-                }
-
-                await(++depth, boost::fusion::next(iter), is_at_end());
+                    >()
+                );
             }
 
             // Current element is a range (vector) of futures
             template <typename Iter>
             BOOST_FORCEINLINE
-            void await_next(std::size_t depth, Iter iter, boost::mpl::false_,
-                boost::mpl::true_)
+            void await_next(Iter iter, boost::mpl::false_, boost::mpl::true_)
             {
                 await_range(
-                    depth
-                  , iter
+                    iter
                   , boost::begin(boost::unwrap_ref(boost::fusion::deref(iter)))
                   , boost::end(boost::unwrap_ref(boost::fusion::deref(iter)))
                 );
@@ -392,8 +338,7 @@ namespace hpx { namespace lcos { namespace local
             // Current element is a simple future
             template <typename Iter>
             BOOST_FORCEINLINE
-            void await_next(std::size_t depth, Iter iter, boost::mpl::true_,
-                boost::mpl::false_)
+            void await_next(Iter iter, boost::mpl::true_, boost::mpl::false_)
             {
                 typedef
                     typename boost::fusion::result_of::next<Iter>::type
@@ -426,8 +371,7 @@ namespace hpx { namespace lcos { namespace local
                     if (!next_future_data->is_ready())
                     {
                         void (dataflow_frame::*f)(
-                                std::size_t, Iter,
-                                boost::mpl::true_, boost::mpl::false_
+                                Iter, boost::mpl::true_, boost::mpl::false_
                             ) = &dataflow_frame::await_next_respawn;
 
                         boost::intrusive_ptr<dataflow_frame> this_(this);
@@ -435,7 +379,6 @@ namespace hpx { namespace lcos { namespace local
                             hpx::util::bind(
                                 f
                               , std::move(this_)
-                              , ++depth
                               , std::move(iter)
                               , boost::mpl::true_()
                               , boost::mpl::false_()
@@ -445,24 +388,19 @@ namespace hpx { namespace lcos { namespace local
                     }
                 }
 
-                typedef boost::mpl::bool_<
+                await(
+                    policy_
+                  , boost::fusion::next(iter)
+                  , boost::mpl::bool_<
                         boost::is_same<next_type, end_type>::value
-                    > is_at_end;
-
-                // re-spawn on a new thread to avoid stack overflows
-                if (depth >= HPX_CONTINUATION_MAX_RECURSION_DEPTH)
-                {
-                    respawn_await(boost::fusion::next(iter), is_at_end());
-                    return;
-                }
-
-                await(++depth, boost::fusion::next(iter), is_at_end());
+                    >()
+                );
             }
 
             ///////////////////////////////////////////////////////////////////////
             template <typename Iter>
             BOOST_FORCEINLINE
-            void await(std::size_t depth, Iter iter, boost::mpl::false_)
+            void await(Policy&, Iter iter, boost::mpl::false_)
             {
                 typedef
                     typename util::decay_unwrap<
@@ -478,7 +416,7 @@ namespace hpx { namespace lcos { namespace local
                     future_type
                 >::type is_range;
 
-                await_next(depth, std::move(iter), is_future(), is_range());
+                await_next(std::move(iter), is_future(), is_range());
             }
 
         public:
@@ -489,7 +427,7 @@ namespace hpx { namespace lcos { namespace local
                     begin_type;
 
                 await(
-                    0
+                    policy_
                   , boost::fusion::begin(futures_)
                   , boost::mpl::bool_<
                         boost::is_same<begin_type, end_type>::value
