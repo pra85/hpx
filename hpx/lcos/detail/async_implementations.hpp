@@ -8,6 +8,7 @@
 
 #include <hpx/config.hpp>
 #include <hpx/runtime/launch_policy.hpp>
+#include <hpx/traits/future_access.hpp>
 #include <hpx/runtime/actions/continuation.hpp>
 #include <hpx/runtime/naming/address.hpp>
 #include <hpx/runtime/naming/id_type.hpp>
@@ -143,11 +144,11 @@ namespace hpx { namespace detail
 
         if (target_is_managed)
         {
-            typedef typename lcos::detail::shared_state_ptr_for<
+            typedef typename traits::detail::shared_state_ptr_for<
                 future<result_type>
             >::type shared_state_ptr;
 
-            shared_state_ptr const& state = lcos::detail::get_shared_state(f);
+            shared_state_ptr const& state = traits::detail::get_shared_state(f);
             state->set_on_completed(hpx::detail::keep_id_alive(id));
         }
 
@@ -205,11 +206,11 @@ namespace hpx { namespace detail
 
         if (target_is_managed)
         {
-            typedef typename lcos::detail::shared_state_ptr_for<
+            typedef typename traits::detail::shared_state_ptr_for<
                 future<result_type>
             >::type shared_state_ptr;
 
-            shared_state_ptr const& state = lcos::detail::get_shared_state(f);
+            shared_state_ptr const& state = traits::detail::get_shared_state(f);
             state->set_on_completed(detail::keep_id_alive(id));
         }
 

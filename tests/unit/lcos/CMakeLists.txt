@@ -21,7 +21,6 @@ set(tests
     async_remote_client
     broadcast
     broadcast_apply
-    composable_guard
     condition_variable
     barrier
     fold
@@ -30,8 +29,7 @@ set(tests
     future_then
     future_then_executor
     future_wait
-    latch_local
-    latch_remote
+    local_latch
     local_barrier
     local_dataflow
     local_dataflow_executor
@@ -40,6 +38,8 @@ set(tests
     packaged_action
     promise
     reduce
+    remote_latch
+    run_guarded
     shared_future
     unwrapped
     when_all
@@ -73,8 +73,8 @@ set(future_wait_PARAMETERS THREADS_PER_LOCALITY 4)
 
 set(local_barrier_PARAMETERS THREADS_PER_LOCALITY 4)
 
-set(latch_local_PARAMETERS THREADS_PER_LOCALITY 4)
-set(latch_remote_PARAMETERS LOCALITIES 2)
+set(local_latch_PARAMETERS THREADS_PER_LOCALITY 4)
+set(remote_latch_PARAMETERS LOCALITIES 2)
 
 set(local_event_PARAMETERS THREADS_PER_LOCALITY 4)
 
@@ -85,6 +85,8 @@ set(packaged_action_PARAMETERS THREADS_PER_LOCALITY 4)
 set(promise_PARAMETERS THREADS_PER_LOCALITY 4)
 
 set(reduce_PARAMETERS LOCALITIES 2)
+
+set(run_guarded_PARAMETERS THREADS_PER_LOCALITY 4)
 
 foreach(test ${tests})
   set(sources
@@ -138,14 +140,16 @@ if(HPX_WITH_COMPILE_ONLY_TESTS)
                       SOURCES ${sources}
                       EXCLUDE_FROM_ALL
                       FOLDER "Tests/Unit/LCOs/CompileOnly")
+      set(target ${compile_test}_compile_test_lib)
+    else()
+      add_hpx_unit_compile_test(
+        "lcos"
+        ${compile_test}
+        SOURCES ${sources}
+        ${${compile_test}_FLAGS}
+        FOLDER "Tests/Unit/LCOs/CompileOnly")
+      set(target ${compile_test}_test_exe)
     endif()
-
-    add_hpx_unit_compile_test(
-      "lcos"
-      ${compile_test}
-      SOURCES ${sources}
-      ${${compile_test}_FLAGS}
-      FOLDER "Tests/Unit/LCOs/CompileOnly")
 
     # add a custom target for this example
     add_hpx_pseudo_target(tests.unit.lcos.${compile_test})
@@ -155,8 +159,7 @@ if(HPX_WITH_COMPILE_ONLY_TESTS)
                                 tests.unit.lcos.${compile_test})
 
     # add dependencies to pseudo-target
-    add_hpx_pseudo_dependencies(tests.unit.lcos.${compile_test}
-                                ${compile_test}_test_exe)
+    add_hpx_pseudo_dependencies(tests.unit.lcos.${compile_test} ${target})
   endforeach()
 endif()
 

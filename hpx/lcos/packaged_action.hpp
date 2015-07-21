@@ -256,7 +256,7 @@ namespace hpx { namespace lcos
         packaged_action(naming::id_type const& gid, Ts&&... vs)
           : apply_logger_("packaged_action::apply")
         {
-            LLCO_(info) << "packaged_action::packaged_action("
+            LLCO_(info) << "packaged_action::packaged_action(" //-V128
                         << hpx::actions::detail::get_action_name<action_type>()
                         << ", "
                         << gid
@@ -269,7 +269,7 @@ namespace hpx { namespace lcos
                 threads::thread_priority priority, Ts&&... vs)
           : apply_logger_("packaged_action::apply")
         {
-            LLCO_(info) << "packaged_action::packaged_action("
+            LLCO_(info) << "packaged_action::packaged_action(" //-V128
                         << hpx::actions::detail::get_action_name<action_type>()
                         << ", "
                         << gid
@@ -473,7 +473,7 @@ namespace hpx { namespace lcos
         packaged_action(naming::id_type const& gid, Ts&&... vs)
           : apply_logger_("packaged_action_direct::apply")
         {
-            LLCO_(info) << "packaged_action::packaged_action("
+            LLCO_(info) << "packaged_action::packaged_action(" //-V128
                         << hpx::actions::detail::get_action_name<action_type>()
                         << ", "
                         << gid
